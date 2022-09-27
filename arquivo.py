@@ -10,20 +10,22 @@ import statsmodels.formula.api as sm
 from sklearn.datasets import load_diabetes
 from sklearn.linear_model import LinearRegression as skl
 from sklearn.metrics import mean_squared_error
+import statsmodels.api as sme
+
 # tratamento do dataset
 dadosAustralia = pd.read_csv(
     "Crash_Data.csv", sep=",", low_memory=False)  # lendo .csv do dataset
 dadosAustralia = dadosAustralia.loc[:, [
-    'Speed Limit', 'Time', 'Gender', 'National Remoteness Areas','Age']]  # selecionando variáveis
-dadosAustralia.rename(columns={'Speed Limit': 'Velocidade máxima', 'Time': 'Horário',
-                      'Gender': 'Gênero', 'National Remoteness Areas': 'Região', 'Age': 'Idade'}, inplace=True)  # renomeando variáveis
+    'Speed Limit', 'Time', 'Gender', 'National Remoteness Areas','Age','Year', 'Month', 'Crash Type']]  # selecionando variáveis
+dadosAustralia.rename(columns={'Speed Limit': 'VelocidadeMaxima', 'Time': 'Horário', 'Year': 'Ano',
+                      'Gender': 'Gênero', 'National Remoteness Areas': 'Região', 'Age': 'Idade', 'Month': 'Mes','Crash Type': 'TipoBatida'}, inplace=True)  # renomeando variáveis
 
 dadosAustralia = dadosAustralia.dropna()  # tratando valores faltantes
 dadosAustralia.apply(lambda x: pd.to_numeric(
     x, errors='coerce')).dropna()  # tratando valores faltantes
-dadosAustralia = dadosAustralia[dadosAustralia["Velocidade máxima"].str.contains(
+dadosAustralia = dadosAustralia[dadosAustralia["VelocidadeMaxima"].str.contains(
     "<") == False]  # tratando valores incompletos
-dadosAustralia = dadosAustralia[dadosAustralia["Velocidade máxima"].str.contains(
+dadosAustralia = dadosAustralia[dadosAustralia["VelocidadeMaxima"].str.contains(
     "Unspecified") == False]  # tratando valores incompletos
 
 dadosAustralia['Idade'] = dadosAustralia['Idade'].astype(int)
@@ -60,30 +62,30 @@ sQuartilHora = dadosAustralia['Horário'].quantile(0.75)
 sQuartilHora = str(int(sQuartilHora // 60)).rjust(2, '0') + \
     ':' + str(int(sQuartilHora % 60)).rjust(2, '0')
 
-dadosAustralia['Velocidade máxima'] = pd.to_numeric(
-    dadosAustralia['Velocidade máxima'])  # convertendo vel maxima para numerico
+dadosAustralia['VelocidadeMaxima'] = pd.to_numeric(
+    dadosAustralia['VelocidadeMaxima'])  # convertendo vel maxima para numerico
 
-medianaVelocidade = dadosAustralia['Velocidade máxima'].median()
-modasVelocidade = dadosAustralia['Velocidade máxima'].mode()
-mediaVelocidade = dadosAustralia['Velocidade máxima'].mean()
+medianaVelocidade = dadosAustralia['VelocidadeMaxima'].median()
+modasVelocidade = dadosAustralia['VelocidadeMaxima'].mode()
+mediaVelocidade = dadosAustralia['VelocidadeMaxima'].mean()
 
-pQuartilVelocidade = dadosAustralia['Velocidade máxima'].quantile(0.25)
-sQuartilVelocidade = dadosAustralia['Velocidade máxima'].quantile(0.75)
+pQuartilVelocidade = dadosAustralia['VelocidadeMaxima'].quantile(0.25)
+sQuartilVelocidade = dadosAustralia['VelocidadeMaxima'].quantile(0.75)
 
 modasGenero = dadosAustralia['Gênero'].mode()
 
 modasRegiao = dadosAustralia['Região'].mode()
 
 valoresMediana = {'Horário':  [medianaHorario],
-                  'Velocidade Máxima(km/h)': [medianaVelocidade]
+                  'VelocidadeMaxima(km/h)': [medianaVelocidade]
                   }
 valoresModa = {'Horário':  modasHorarios,
-               'Velocidade Máxima(km/h)': modasVelocidade,
+               'VelocidadeMaxima(km/h)': modasVelocidade,
                'Gênero': modasGenero,
                'Região': modasRegiao
                }
 valoresMedia = {'Horário':  [mediaHorario],
-                'Velocidade Máxima(km/h)': [mediaVelocidade]
+                'VelocidadeMaxima(km/h)': [mediaVelocidade]
                 }
 valoresQuartisHora = {  '1º quartil': [pQuartilHora],
                         '3º quartil': [sQuartilHora]
@@ -144,7 +146,7 @@ HTML(pd.DataFrame(valoresQuartisHora).style.set_table_styles(
 
 print()
 
-print('\033[1mQuartis de velocidade máxima\033[0m')
+print('\033[1mQuartis de VelocidadeMaxima\033[0m')
 print(pd.DataFrame(valoresQuartisVelocidade).to_string(index=False))
 HTML(pd.DataFrame(valoresQuartisVelocidade).to_html(index=False))
 HTML(pd.DataFrame(valoresQuartisVelocidade).style.set_table_styles(
@@ -159,8 +161,8 @@ HTML(pd.DataFrame(valoresQuartisVelocidade).style.set_table_styles(
 # mean_df = df.mean()
 # display(df.style.hide_index().set_caption("Modas"))
 
-desvioPadraoVelocidade = dadosAustralia['Velocidade máxima'].std()
-varianciaVelocidade = dadosAustralia['Velocidade máxima'].var()
+desvioPadraoVelocidade = dadosAustralia['VelocidadeMaxima'].std()
+varianciaVelocidade = dadosAustralia['VelocidadeMaxima'].var()
 coeficienteVariacaoVelocidade = (desvioPadraoVelocidade / mediaVelocidade) * 100
 
 desvioPadraoHorarioMinutos = dadosAustralia['Horário'].std()
@@ -171,13 +173,13 @@ desvioPadraoHorario = str(int(desvioPadraoHorarioMinutos // 60)).rjust(2, '0') +
     ':' + str(int(desvioPadraoHorarioMinutos % 60)).rjust(2, '0')
 
 valoresDesvioPadrao = {'Horário':  [desvioPadraoHorario],
-                       'Velocidade Máxima(km/h)': [desvioPadraoVelocidade]
+                       'VelocidadeMaxima(km/h)': [desvioPadraoVelocidade]
                        }
 valoresVarianca = {'Horário':  [varianciaHorario],
-                   'Velocidade Máxima': [varianciaVelocidade]
+                   'VelocidadeMaxima': [varianciaVelocidade]
                    }
 valoresCoeficienteVariacao = {'Horário(%)':  [coeficienteVariacaoHorario],
-                              'Velocidade Máxima(%)': [coeficienteVariacaoVelocidade]
+                              'VelocidadeMaxima(%)': [coeficienteVariacaoVelocidade]
                               }
 
 # RENDERIZAÇÃO DE TABELAS PARA RELATÓRIO
@@ -233,8 +235,8 @@ plt.close()
 # GERANDO HISTOGRAMAS VELOCIDADE MÃXIMA
 
 plt.figure(figsize=(8,5))
-plt.hist(dadosAustralia['Velocidade máxima'], rwidth=0.9, bins=12)
-plt.title('Distribuição de acidentes fatais por velocidade máxima da rodovia')
+plt.hist(dadosAustralia['VelocidadeMaxima'], rwidth=0.9, bins=12)
+plt.title('Distribuição de acidentes fatais por VelocidadeMaxima da rodovia')
 plt.xlabel('Velocidade (em km/h)')
 x = np.arange(0, 131, 10)
 plt.xticks(x)
@@ -246,7 +248,7 @@ plt.close()
 # GERANDO HISTOGRAMAS HORÁRIO
 
 '''plt.figure(figsize=(10,7), dpi= 80)
-sns.distplot(dadosAustralia["Velocidade máxima"], color="dodgerblue", label="Compact",)
+sns.distplot(dadosAustralia["VelocidadeMaxima"], color="dodgerblue", label="Compact",)
 plt.savefig('normal.png')
 plt.show()
 plt.close()'''
@@ -281,9 +283,9 @@ plt.show()
 plt.close()
 
 # BOXPLOT VELOCIDADE 
-boxplot = dadosAustralia.boxplot(column="Velocidade máxima", by="Gênero")
+boxplot = dadosAustralia.boxplot(column="VelocidadeMaxima", by="Gênero")
 boxplot.plot()
-plt.title('Distribuição de acidentes fatais: velocidade máxima por gênero')
+plt.title('Distribuição de acidentes fatais: VelocidadeMaxima por gênero')
 plt.ylabel('Velocidade (km/h)')
 plt.suptitle('')
 plt.savefig('velocidade-por-genero.png')
@@ -303,7 +305,7 @@ plt.close()
 
 dadosAustralia.rename(columns={'Horário (em h)': 'HorarioH'}, inplace=True)  # renomeando variáveis
 
-# print(stats.normaltest(dadosAustralia['Velocidade máxima']))
+# print(stats.normaltest(dadosAustralia['VelocidadeMaxima']))
 dadosAustralia['HorarioH'] = dadosAustralia['HorarioH'].astype(int)
 
 amostra = dadosAustralia.sample(100)
@@ -339,7 +341,77 @@ plt.plot(
     linestyle=':'
 )
 
-plt.xlabel(" ($) Gasto em propaganda de TV")
-plt.ylabel(" ($) Vendas")
+plt.xlabel("Idade")
+plt.ylabel("Horário (em h)")
 plt.show()
-plt.savefig('dispersao2')
+plt.savefig('dispersao-idade-horario')
+
+
+###################
+plt.figure(figsize = (16,8))
+plt.scatter(
+    amostra['Horário'], 
+    amostra['Idade'], 
+    c='red')
+plt.xlabel("Idade")
+plt.ylabel("HorarioH")
+plt.show()
+plt.savefig('dispersao')
+X = amostra['Idade'].values.reshape(-1,1)
+y = amostra['HorarioH'].values.reshape(-1,1)
+reg = skl()
+reg.fit(X, y)
+
+f_previsaoes = reg.predict(X)
+
+
+plt.figure(figsize = (16,8))
+plt.scatter(
+    amostra['Idade'], 
+    amostra['HorarioH'], 
+    c='red')
+
+
+plt.plot(
+    amostra['Idade'],
+    f_previsaoes,
+    c='blue',
+    linewidth=3,
+    linestyle=':'
+)
+
+
+
+dadosAustralia.loc[dadosAustralia["TipoBatida"] == "Multiple", "TipoBatida"] = 2
+dadosAustralia.loc[dadosAustralia["TipoBatida"] == "Single", "TipoBatida"] = 1
+
+print(dadosAustralia)
+
+plt.xlabel("Idade")
+plt.ylabel("Horário (em h)")
+plt.show()
+plt.savefig('dispersao-idade-horario')
+print(dadosAustralia)
+dadosAustralia['VelocidadeMaxima'] = dadosAustralia['VelocidadeMaxima'].astype(int)
+dadosAustralia['TipoBatida'] = dadosAustralia['TipoBatida'].astype(int)
+modelo_1 = sm.ols('TipoBatida~VelocidadeMaxima+HorarioH', data=dadosAustralia).fit()
+print(modelo_1.summary())
+#histograma_residuos = modelo_1.predict()
+#sns.histplot(histograma_residuos, kde=true)
+#plt.title("Histograma dos resíduos da regressão")
+#plt.savefig("histograma_residuos")
+
+# variável preditora
+X = np.array(dadosAustralia['VelocidadeMaxima'])
+Z = np.array(dadosAustralia['HorarioH'])
+
+# variável alvo
+y = np.array(dadosAustralia['TipoBatida'])
+X_sm = sme.add_constant(X)
+Z_sm = sme.add_constant(Z)
+
+# OLS vem de Ordinary Least Squares e o método fit irá treinar o modelo
+results = sme.OLS(y, Z_sm).fit()
+# mostrando as estatísticas do modelo
+print(results.summary())
+# mostrando as previsões para o mesmo conjunto passado
