@@ -12,7 +12,7 @@ from sklearn.linear_model import LinearRegression as skl
 from sklearn.metrics import mean_squared_error
 # tratamento do dataset
 dadosAustralia = pd.read_csv(
-    "Crash_Data.csv", sep=",", encoding="ISO-8859-1", low_memory=False)  # lendo .csv do dataset
+    "Crash_Data.csv", sep=",", low_memory=False)  # lendo .csv do dataset
 dadosAustralia = dadosAustralia.loc[:, [
     'Speed Limit', 'Time', 'Gender', 'National Remoteness Areas','Age']]  # selecionando variáveis
 dadosAustralia.rename(columns={'Speed Limit': 'Velocidade máxima', 'Time': 'Horário',
@@ -305,13 +305,41 @@ dadosAustralia.rename(columns={'Horário (em h)': 'HorarioH'}, inplace=True)  # 
 
 # print(stats.normaltest(dadosAustralia['Velocidade máxima']))
 dadosAustralia['HorarioH'] = dadosAustralia['HorarioH'].astype(int)
-# dadosAustralia.to_csv('dataset_pos.csv')  
-# print(dadosAustralia)
-# modelo1 = sm.ols(formula='Idade~HorarioH', data=dadosAustralia).fit()
-# print(modelo1.predict(dadosAustralia['HorarioH']))
-# sns.scatterplot(x="Idade", y="HorarioH", data=dadosAustralia)
 
-# plt.savefig('dispersao.png')
-# plt.figure(figsize = (200,150))
-# sns.regplot(x="HorarioH", y="Idade", data=dadosAustralia)
-# plt.savefig('dispersao3.png')
+amostra = dadosAustralia.sample(100)
+plt.figure(figsize = (16,8))
+plt.scatter(
+    amostra['Horário'], 
+    amostra['Idade'], 
+    c='red')
+plt.xlabel("Idade")
+plt.ylabel("HorarioH")
+plt.show()
+plt.savefig('dispersao')
+X = amostra['Idade'].values.reshape(-1,1)
+y = amostra['HorarioH'].values.reshape(-1,1)
+reg = skl()
+reg.fit(X, y)
+
+f_previsaoes = reg.predict(X)
+
+
+plt.figure(figsize = (16,8))
+plt.scatter(
+    amostra['Idade'], 
+    amostra['HorarioH'], 
+    c='red')
+
+
+plt.plot(
+    amostra['Idade'],
+    f_previsaoes,
+    c='blue',
+    linewidth=3,
+    linestyle=':'
+)
+
+plt.xlabel(" ($) Gasto em propaganda de TV")
+plt.ylabel(" ($) Vendas")
+plt.show()
+plt.savefig('dispersao2')
