@@ -96,7 +96,6 @@ valoresQuartisVelocidade = {    '1º quartil': [pQuartilVelocidade],
 
 # RENDERIZAÇÃO DE TABELAS PARA RELATÓRIO
 
-print()
 
 print('\033[1mMedianas\033[0m')
 print(pd.DataFrame(valoresMediana).to_string(index=False))
@@ -308,7 +307,7 @@ dadosAustralia.rename(columns={'Horário (em h)': 'HorarioH'}, inplace=True)  # 
 # print(stats.normaltest(dadosAustralia['VelocidadeMaxima']))
 dadosAustralia['HorarioH'] = dadosAustralia['HorarioH'].astype(int)
 
-amostra = dadosAustralia.sample(100)
+amostra = dadosAustralia.sample(1000)
 plt.figure(figsize = (16,8))
 plt.scatter(
     amostra['Horário'], 
@@ -318,33 +317,24 @@ plt.xlabel("Idade")
 plt.ylabel("HorarioH")
 plt.show()
 plt.savefig('dispersao')
-X = amostra['Idade'].values.reshape(-1,1)
-y = amostra['HorarioH'].values.reshape(-1,1)
+
+
+
+
+X = amostra['Mes'].values.reshape(-1,1)
+y = amostra['VelocidadeMaxima'].values.reshape(-1,1)
 reg = skl()
 reg.fit(X, y)
-
 f_previsaoes = reg.predict(X)
-
-
 plt.figure(figsize = (16,8))
 plt.scatter(
-    amostra['Idade'], 
-    amostra['HorarioH'], 
+    amostra['Mes'], 
+    amostra['VelocidadeMaxima'], 
     c='red')
-
-
-plt.plot(
-    amostra['Idade'],
-    f_previsaoes,
-    c='blue',
-    linewidth=3,
-    linestyle=':'
-)
-
-plt.xlabel("Idade")
-plt.ylabel("Horário (em h)")
+plt.xlabel("Mes")
+plt.ylabel("Velocidade máxima")
 plt.show()
-plt.savefig('dispersao-idade-horario')
+plt.savefig('dispersao-mes-velocidade')
 
 
 ###################
@@ -381,37 +371,37 @@ plt.plot(
 )
 
 
-
-dadosAustralia.loc[dadosAustralia["TipoBatida"] == "Multiple", "TipoBatida"] = 2
-dadosAustralia.loc[dadosAustralia["TipoBatida"] == "Single", "TipoBatida"] = 1
-
-print(dadosAustralia)
-
 plt.xlabel("Idade")
 plt.ylabel("Horário (em h)")
 plt.show()
 plt.savefig('dispersao-idade-horario')
+
 print(dadosAustralia)
-dadosAustralia['VelocidadeMaxima'] = dadosAustralia['VelocidadeMaxima'].astype(int)
-dadosAustralia['TipoBatida'] = dadosAustralia['TipoBatida'].astype(int)
-modelo_1 = sm.ols('TipoBatida~VelocidadeMaxima+HorarioH', data=dadosAustralia).fit()
-print(modelo_1.summary())
-#histograma_residuos = modelo_1.predict()
-#sns.histplot(histograma_residuos, kde=true)
-#plt.title("Histograma dos resíduos da regressão")
-#plt.savefig("histograma_residuos")
 
-# variável preditora
-X = np.array(dadosAustralia['VelocidadeMaxima'])
-Z = np.array(dadosAustralia['HorarioH'])
+modelo1 = sm.ols(formula='VelocidadeMaxima~Idade+Mes', data=amostra).fit()
+print(modelo1.summary())
+y = 86.1635 + (-0.0962 *amostra['Idade']) + (0.1838 * amostra['Mes'])
+residuos = modelo1.predict()
+sns.histplot(y-residuos, kde=True);
+plt.title("Histograma dos resíduos Vel ~ Idade + Mes")
+plt.savefig("residuos_velocidade_idade_mes")
 
-# variável alvo
-y = np.array(dadosAustralia['TipoBatida'])
-X_sm = sme.add_constant(X)
-Z_sm = sme.add_constant(Z)
+modelo2 = sm.ols(formula='VelocidadeMaxima~Mes+HorarioH', data=amostra).fit()
+print(modelo2.summary())
+residuos = modelo2.predict()
 
-# OLS vem de Ordinary Least Squares e o método fit irá treinar o modelo
-results = sme.OLS(y, Z_sm).fit()
-# mostrando as estatísticas do modelo
-print(results.summary())
-# mostrando as previsões para o mesmo conjunto passado
+y = 83.0886 + (0.1973 *amostra['Mes']) + (-0.1026 * amostra['HorarioH'])
+sns.histplot(y-residuos, kde=True)
+plt.title("Histograma dos resíduos Vel ~ Mes + HorarioH")
+plt.savefig("residuos_velocidade_mes_horario")
+
+modelo3 = sm.ols(formula='HorarioH~VelocidadeMaxima+Ano', data=amostra).fit()
+print(modelo3.summary())
+residuos = modelo3.predict()
+y = 51.6436 + (-0.0076 *amostra['VelocidadeMaxima']) + (-0.0190 * amostra['Ano'])
+sns.histplot(y-residuos, kde=True)
+plt.title("Histograma dos resíduos Horario ~ Velocidade + ano")
+plt.savefig("residuos_horario_velocidade_ano")
+
+
+dadosAustralia.to_csv("teste.csv")
