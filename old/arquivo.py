@@ -404,4 +404,4 @@ plt.title("Histograma dos resíduos Horario ~ Velocidade + ano")
 plt.savefig("residuos_horario_velocidade_ano")
 
 
-dadosAustralia.to_csv("teste.csv")
+dadosAustralia.to_csv("teste.csv", index=False)
